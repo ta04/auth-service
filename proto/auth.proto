@@ -1,0 +1,48 @@
+// auth-service/proto/auth.proto
+
+syntax = "proto3";
+
+package com.ta04.srv.auth;
+
+message User {
+    int32 id = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string username = 4;
+    string password = 5;
+    string email_address = 6;
+    string phone_number = 7;
+    string date_of_birth = 8;
+    string address = 9;
+    string role = 10;
+    string credit_card_number = 11;
+    string credit_card_type = 12;
+    string credit_card_expired_month = 13;
+    string credit_card_expired_year = 14;
+    string credit_card_cvv = 15;
+    bool status = 16;
+}
+
+message Request {}
+
+message Response {
+    User user = 1;
+    repeated User users = 2;
+    repeated Error errors = 3;
+}
+
+message Token {
+    string token = 1;
+    bool valid = 2;
+    repeated Error errors = 3;
+}
+
+message Error {
+    int32 code = 1;
+    string description = 2;
+}
+
+service AuthService {
+    rpc Auth(User) returns (Token) {}
+    rpc ValidateToken(Token) returns (Token) {}
+}
