@@ -22,7 +22,7 @@ func NewHandler(service Authable) *handler {
 
 func (h *handler) Auth(ctx context.Context, req *authPB.User, res *authPB.Token) error {
 	userClient := userPB.NewUserServiceClient("com.ta04.h.user", client.DefaultClient)
-	response, err := userClient.ShowUserByUsername(context.Background(), (*userPB.User)(req))
+	response, err := userClient.ShowUserByUsername(context.Background(), &userPB.User{Username: req.Username})
 	if err != nil {
 		return err
 	}
