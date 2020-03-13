@@ -20,7 +20,7 @@ message User {
     string credit_card_expired_month = 13;
     string credit_card_expired_year = 14;
     string credit_card_cvv = 15;
-    bool status = 16;
+    string status = 16;
 }
 
 message Request {}
