@@ -1,16 +1,18 @@
 package main
 
 import (
+	"log"
+
 	"github.com/SleepingNext/auth-service/handler"
 	authPB "github.com/SleepingNext/auth-service/proto"
 	"github.com/micro/go-micro"
-	"log"
 )
 
 func main() {
 	// Create a new service
 	s := micro.NewService(
 		micro.Name("com.ta04.srv.auth"),
+		micro.Address(":50055"),
 	)
 
 	// Initialize the service
@@ -28,4 +30,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
