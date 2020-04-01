@@ -8,6 +8,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.4
 	github.com/micro/go-micro v1.18.0
+	github.com/micro/go-plugins/registry/consul v0.0.0-20200119172437-4fe21aa238fd
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 )
 
