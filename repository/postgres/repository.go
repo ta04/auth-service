@@ -5,7 +5,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"math/rand"
 	"strconv"
 	"time"
@@ -18,12 +17,15 @@ import (
 // Store will store a new auth
 func (repo *Repository) Store(auth1 *authPB.Auth1) (*authPB.C, error) {
 	userClient := userPB.NewUserServiceClient("com.ta04.srv.user", client.DefaultClient)
-	response, _ := userClient.ShowUserByUsername(context.Background(), &userPB.User{Username: auth.Username})
+	response, err := userClient.ShowUserByUsername(context.Background(), &userPB.User{Username: auth1.Username})
+	if err != nil {
+		return nil, err
+	}
 	user := response.User
 
 	query := fmt.Sprintf("INSERT INTO auth (username, t) VALUES ('%s', '%s')",
 		auth1.Username, auth1.T)
-	_, err := repo.DB.Exec(query)
+	_, err = repo.DB.Exec(query)
 
 	rand.Seed(time.Now().UnixNano())
 	parsedN, _ := strconv.ParseInt(user.N, 10, 64)

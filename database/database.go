@@ -1,4 +1,4 @@
-// user-service/database/database.go
+// auth-service/database/database.go
 
 package database
 
