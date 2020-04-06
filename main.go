@@ -4,8 +4,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/SleepingNext/auth-service/database"
+	"github.com/SleepingNext/auth-service/repository/postgres"
+
 	"github.com/SleepingNext/auth-service/handler"
 	authPB "github.com/SleepingNext/auth-service/proto"
+	_ "github.com/lib/pq"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-plugins/registry/consul"
 )
@@ -30,14 +34,28 @@ func main() {
 	// Initialize the service
 	s.Init()
 
+	// Connect to Postgres
+	db, err := database.OpenPostgresConnection()
+	if err != nil {
+		log.Fatalf("failed to connect to postgress: #{err}")
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
 	// Create a new handler
-	h := handler.NewHandler(&handler.TokenService{})
+	h := handler.NewHandler(&postgres.Repository{
+		DB: db,
+	}, &handler.TokenService{})
 
 	// Register the handler
 	authPB.RegisterAuthServiceHandler(s.Server(), h)
 
 	// Run the server
-	err := s.Run()
+	err = s.Run()
 	if err != nil {
 		log.Fatal(err)
 	}

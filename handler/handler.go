@@ -5,11 +5,12 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/SleepingNext/auth-service/repository"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"strconv"
+
+	authRepo "github.com/SleepingNext/auth-service/repository"
 
 	userPB "github.com/G0tYou/user-service/proto"
 	authPB "github.com/SleepingNext/auth-service/proto"
@@ -17,12 +18,13 @@ import (
 )
 
 type handler struct {
-	repository repository.Repository
+	repository   authRepo.Repository
 	tokenService Authable
 }
 
-func NewHandler(service Authable) *handler {
+func NewHandler(repo authRepo.Repository, service Authable) *handler {
 	return &handler{
+		repository:   repo,
 		tokenService: service,
 	}
 }
@@ -54,7 +56,7 @@ func (h *handler) AuthRPC2(ctx context.Context, req *authPB.Auth2, res *authPB.T
 			return err
 		}
 
-		type Result struct {result string}
+		type Result struct{ result string }
 		var unmarshalledBody *Result
 		err = json.Unmarshal(body, &unmarshalledBody)
 		if err != nil {
@@ -88,7 +90,7 @@ func (h *handler) AuthRPC1(ctx context.Context, req *authPB.Auth1, res *authPB.C
 		return err
 	}
 
-	res = c
+	res.C = c.C
 
 	return err
 }

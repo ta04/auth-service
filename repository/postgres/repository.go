@@ -28,7 +28,10 @@ func (repo *Repository) Store(auth1 *authPB.Auth1) (*authPB.C, error) {
 	_, err = repo.DB.Exec(query)
 
 	rand.Seed(time.Now().UnixNano())
-	parsedN, _ := strconv.ParseInt(user.N, 10, 64)
+	parsedN, err := strconv.ParseInt(user.N, 10, 64)
+	if err != nil {
+		return nil, err
+	}
 	n := int(parsedN)
 
 	return &authPB.C{
