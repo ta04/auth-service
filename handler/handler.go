@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -56,20 +57,24 @@ func (h *handler) AuthRPC2(ctx context.Context, req *authPB.Auth2, res *authPB.T
 		if err != nil {
 			return err
 		}
-		body, err := ioutil.ReadAll(calculateResultRes.Body)
+
 		defer calculateResultRes.Body.Close()
+
+		body, err := ioutil.ReadAll(calculateResultRes.Body)
 		if err != nil {
 			return err
 		}
 
-		type Result struct{ result string }
-		var unmarshalledBody *Result
+		type ResultStruct struct {
+			Result int64 `json:"result"`
+		}
+		var unmarshalledBody ResultStruct
 		err = json.Unmarshal(body, &unmarshalledBody)
 		if err != nil {
 			return err
 		}
 
-		result = unmarshalledBody.result
+		result = strconv.FormatInt(unmarshalledBody.Result, 10)
 	} else {
 		g, err := strconv.ParseFloat(user.G, 64)
 		if err != nil {
@@ -101,11 +106,14 @@ func (h *handler) AuthRPC2(ctx context.Context, req *authPB.Auth2, res *authPB.T
 	}
 
 	if result == auth1.T {
+		log.Println("Sama. result : ", result, " T : ", auth1.T)
 		token, err := h.tokenService.Encode(user)
 		if err != nil {
 			return err
 		}
 		res.Token = token
+	} else {
+		log.Println("Tidak Sama. result : ", result, " T : ", auth1.T)
 	}
 	return nil
 }
