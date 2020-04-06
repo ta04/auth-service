@@ -3,8 +3,8 @@ module github.com/SleepingNext/auth-service
 go 1.13
 
 require (
-	github.com/G0tYou/user-service v0.0.0-20200313080858-d3bce7c4df84
-	github.com/SleepingNext/auth-service-cli v0.0.0-20200325115926-9aae17ac9ef1 // indirect
+	github.com/Azure/go-autorest/autorest/azure/auth v0.1.0
+	github.com/G0tYou/user-service v0.0.0-20200406111304-e1323d4a0a54
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.4
 	github.com/micro/go-micro v1.18.0

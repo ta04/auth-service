@@ -21,6 +21,8 @@ message User {
     string credit_card_expired_year = 14;
     string credit_card_cvv = 15;
     string status = 16;
+    string n = 17;
+    string g = 18;
 }
 
 message Request {}
@@ -29,6 +31,22 @@ message Response {
     User user = 1;
     repeated User users = 2;
     repeated Error errors = 3;
+}
+
+message Auth2 {
+    string username = 1;
+    string r = 2;
+    string c = 3;
+}
+
+message Auth1 {
+    int32 id = 1;
+    string username = 2;
+    string t = 3;
+}
+
+message C {
+    string c = 1;
 }
 
 message Token {
@@ -43,6 +61,7 @@ message Error {
 }
 
 service AuthService {
-    rpc Auth(User) returns (Token) {}
+    rpc AuthRPC2(Auth2) returns (Token) {}
+    rpc AuthRPC1(Auth1) returns (C) {}
     rpc ValidateToken(Token) returns (Token) {}
 }
