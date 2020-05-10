@@ -6,31 +6,42 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"strconv"
 
-	authRepo "github.com/SleepingNext/auth-service/repository"
-
-	userPB "github.com/G0tYou/user-service/proto"
-	authPB "github.com/SleepingNext/auth-service/proto"
 	"github.com/micro/go-micro/client"
+	authPB "github.com/ta04/auth-service/proto"
+	authRepo "github.com/ta04/auth-service/repository"
+	userPB "github.com/ta04/user-service/proto"
 )
 
-type handler struct {
+// Handler is the handler of auth service
+type Handler struct {
 	repository   authRepo.Repository
-	tokenService Authable
+	tokenHandler TokenHandler
 }
 
-func NewHandler(repo authRepo.Repository, service Authable) *handler {
-	return &handler{
-		repository:   repo,
-		tokenService: service,
+// NewHandler creates a new auth service handler
+func NewHandler(repository authRepo.Repository, tokenHandler TokenHandler) *Handler {
+	return &Handler{
+		repository:   repository,
+		tokenHandler: tokenHandler,
 	}
 }
 
-func (h *handler) AuthRPC2(ctx context.Context, req *authPB.Auth2, res *authPB.Token) error {
+func (h *Handler) AuthRPC1(ctx context.Context, req *authPB.Auth1, res *authPB.C) error {
+	c, err := h.repository.Store(req)
+	if err != nil {
+		return err
+	}
+
+	res.C = c.C
+
+	return err
+}
+
+func (h *Handler) AuthRPC2(ctx context.Context, req *authPB.Auth2, res *authPB.Response) error {
 	var result string
 	userClient := userPB.NewUserServiceClient("com.ta04.srv.user", client.DefaultClient)
 	response, err := userClient.ShowUserByUsername(context.Background(), &userPB.User{Username: req.Username})
@@ -106,36 +117,12 @@ func (h *handler) AuthRPC2(ctx context.Context, req *authPB.Auth2, res *authPB.T
 	}
 
 	if result == auth1.T {
-		log.Println("Sama. result : ", result, " T : ", auth1.T)
-		token, err := h.tokenService.Encode(user)
+		token, err := h.tokenHandler.Encode(user)
 		if err != nil {
 			return err
 		}
 		res.Token = token
 	} else {
-		log.Println("Tidak Sama. result : ", result, " T : ", auth1.T)
 	}
-	return nil
-}
-
-func (h *handler) AuthRPC1(ctx context.Context, req *authPB.Auth1, res *authPB.C) error {
-	c, err := h.repository.Store(req)
-	if err != nil {
-		return err
-	}
-
-	res.C = c.C
-
-	return err
-}
-
-func (h *handler) ValidateToken(ctx context.Context, req *authPB.Token, res *authPB.Token) error {
-	// Decode token
-	_, err := h.tokenService.Decode(req.Token)
-	if err != nil {
-		return err
-	}
-
-	res.Valid = true
 	return nil
 }

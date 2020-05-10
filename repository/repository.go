@@ -1,10 +1,12 @@
 package repository
 
 import (
-	authPB "github.com/SleepingNext/auth-service/proto"
+	authPB "github.com/ta04/auth-service/proto"
 )
 
-type Repository interface{
+// Repository is the interface of repositories.
+// As there are number of repositories can be used.
+type Repository interface {
 	Store(*authPB.Auth1) (*authPB.C, error)
 	ShowByUsername(*authPB.Auth2) (*authPB.Auth1, error)
 }

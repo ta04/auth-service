@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"time"
 
-	userPB "github.com/G0tYou/user-service/proto"
-	authPB "github.com/SleepingNext/auth-service/proto"
 	"github.com/micro/go-micro/client"
+	authPB "github.com/ta04/auth-service/proto"
+	userPB "github.com/ta04/user-service/proto"
 )
 
 // Store will store a new auth
-func (repo *Repository) Store(auth1 *authPB.Auth1) (*authPB.C, error) {
+func (repo *Postgres) Store(auth1 *authPB.Auth1) (*authPB.C, error) {
 	userClient := userPB.NewUserServiceClient("com.ta04.srv.user", client.DefaultClient)
 	response, err := userClient.ShowUserByUsername(context.Background(), &userPB.User{Username: auth1.Username})
 	if err != nil {

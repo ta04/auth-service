@@ -6,15 +6,16 @@ import (
 	"database/sql"
 	"fmt"
 
-	authPB "github.com/SleepingNext/auth-service/proto"
+	authPB "github.com/ta04/auth-service/proto"
 )
 
-type Repository struct {
+// Postgres is the implementor of Repository interface
+type Postgres struct {
 	DB *sql.DB
 }
 
-// ShowByUsername will show an active user by it's username
-func (repo *Repository) ShowByUsername(auth2 *authPB.Auth2) (*authPB.Auth1, error) {
+// ShowByUsername will show auth info of an active user by it's username
+func (repo *Postgres) ShowByUsername(auth2 *authPB.Auth2) (*authPB.Auth1, error) {
 	var id int32
 	var username, t string
 
@@ -25,8 +26,7 @@ func (repo *Repository) ShowByUsername(auth2 *authPB.Auth2) (*authPB.Auth1, erro
 	}
 
 	return &authPB.Auth1{
-		Id:                     id,
-		Username:               username,
-		T:                      t,
+		Username: username,
+		T:        t,
 	}, err
 }

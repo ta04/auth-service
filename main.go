@@ -1,60 +1,77 @@
+/*
+Dear Programmers,
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*                                                 *
+*	This file belongs to Kevin Veros Hamonangan   *
+*	and	Fandi Fladimir Dachi and is a part of     *
+*	our	last project as the student of Del        *
+*	Institute of Technology, Sitoluama.           *
+*	Please contact us via Instagram:              *
+*	sleepingnext and fandi_dachi                  *
+*	before copying this file.                     *
+*	Thank you, buddy. 😊                          *
+*                                                 *
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 package main
 
 import (
 	"log"
 	"os"
 
-	"github.com/SleepingNext/auth-service/database"
-	"github.com/SleepingNext/auth-service/repository/postgres"
+	"github.com/joho/godotenv"
+	"github.com/ta04/auth-service/database"
+	"github.com/ta04/auth-service/handler/jwt"
+	"github.com/ta04/auth-service/repository/postgres"
 
-	"github.com/SleepingNext/auth-service/handler"
-	authPB "github.com/SleepingNext/auth-service/proto"
 	_ "github.com/lib/pq"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-plugins/registry/consul"
+	"github.com/ta04/auth-service/handler"
+	authPB "github.com/ta04/auth-service/proto"
 )
 
+func init() {
+	// Load environment variables from .env into the system
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
-	// Take or set the port
-	port := ":" + os.Getenv("PORT")
-	if port == ":" {
-		port = ":50055"
+	name, exist := os.LookupEnv("MICRO_SERVICE_NAME")
+	if !exist {
+		log.Fatal("MICRO_SERVICE_NAME is not exists in .env file")
 	}
 
-	// Create a new registry
+	port, exist := os.LookupEnv("MICRO_SERVICE_PORT")
+	if !exist {
+		log.Fatal("MICRO_SERVICE_PORT is not exists in .env file")
+	}
+
 	registry := consul.NewRegistry()
 
-	// Create a new service
 	s := micro.NewService(
-		micro.Name("com.ta04.srv.auth"),
+		micro.Name(name),
 		micro.Address(port),
 		micro.Registry(registry),
 	)
-
-	// Initialize the service
 	s.Init()
 
-	// Connect to Postgres
 	db, err := database.OpenPostgresConnection()
 	if err != nil {
-		log.Fatalf("failed to connect to postgress: #{err}")
+		log.Fatal(err)
 	}
 	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	// Create a new handler
-	h := handler.NewHandler(&postgres.Repository{
+	h := handler.NewHandler(&postgres.Postgres{
 		DB: db,
-	}, &handler.TokenService{})
-
-	// Register the handler
+	}, &jwt.JWT{})
 	authPB.RegisterAuthServiceHandler(s.Server(), h)
 
-	// Run the server
 	err = s.Run()
 	if err != nil {
 		log.Fatal(err)

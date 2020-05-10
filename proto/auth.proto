@@ -1,37 +1,25 @@
-// auth-service/proto/auth.proto
+/*
+Dear Programmers,
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*                                                 *
+*	This file belongs to Kevin Veros Hamonangan   *
+*	and	Fandi Fladimir Dachi and is a part of     *
+*	our	last project as the student of Del        *
+*	Institute of Technology, Sitoluama.           *
+*	Please contact us via Instagram:              *
+*	sleepingnext and fandi_dachi                  *
+*	before copying this file.                     *
+*	Thank you, buddy. 😊                          *
+*                                                 *
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
 syntax = "proto3";
 
 package com.ta04.srv.auth;
 
-message User {
-    int32 id = 1;
-    string first_name = 2;
-    string last_name = 3;
-    string username = 4;
-    string password = 5;
-    string email_address = 6;
-    string phone_number = 7;
-    string date_of_birth = 8;
-    string address = 9;
-    string role = 10;
-    string credit_card_number = 11;
-    string credit_card_type = 12;
-    string credit_card_expired_month = 13;
-    string credit_card_expired_year = 14;
-    string credit_card_cvv = 15;
-    string status = 16;
-    string n = 17;
-    string g = 18;
-}
-
 message Request {}
-
-message Response {
-    User user = 1;
-    repeated User users = 2;
-    repeated Error errors = 3;
-}
 
 message Auth2 {
     string username = 1;
@@ -40,7 +28,6 @@ message Auth2 {
 }
 
 message Auth1 {
-    int32 id = 1;
     string username = 2;
     string t = 3;
 }
@@ -49,7 +36,7 @@ message C {
     string c = 1;
 }
 
-message Token {
+message Response {
     string token = 1;
     bool valid = 2;
     repeated Error errors = 3;
@@ -61,7 +48,6 @@ message Error {
 }
 
 service AuthService {
-    rpc AuthRPC2(Auth2) returns (Token) {}
     rpc AuthRPC1(Auth1) returns (C) {}
-    rpc ValidateToken(Token) returns (Token) {}
+    rpc AuthRPC2(Auth2) returns (Response) {}
 }
