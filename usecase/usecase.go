@@ -15,39 +15,13 @@ Dear Programmers,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-syntax = "proto3";
+package usecase
 
-package com.ta04.srv.auth;
+import proto "github.com/ta04/auth-service/model/proto"
 
-message Request {}
-
-message Auth2 {
-    string username = 1;
-    string r = 2;
-    string c = 3;
-}
-
-message Auth1 {
-    string username = 2;
-    string t = 3;
-}
-
-message C {
-    string c = 1;
-}
-
-message Response {
-    string token = 1;
-    bool valid = 2;
-    repeated Error errors = 3;
-}
-
-message Error {
-    int32 code = 1;
-    string description = 2;
-}
-
-service AuthService {
-    rpc AuthRPC1(Auth1) returns (C) {}
-    rpc AuthRPC2(Auth2) returns (Response) {}
+// usecase is the interface of usecases.
+// As there are many version of usecases can be made.
+type Usecase interface {
+	Auth1(auth1 *proto.Auth1) (string, *proto.Error)
+	Auth2(auth2 *proto.Auth2) (string, *proto.Error)
 }

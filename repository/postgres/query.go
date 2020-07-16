@@ -1,4 +1,19 @@
-// auth-service/repository/postgres/query.go
+/*
+Dear Programmers,
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*                                                 *
+*	This file belongs to Kevin Veros Hamonangan   *
+*	and	Fandi Fladimir Dachi and is a part of     *
+*	our	last project as the student of Del        *
+*	Institute of Technology, Sitoluama.           *
+*	Please contact us via Instagram:              *
+*	sleepingnext and fandi_dachi                  *
+*	before copying this file.                     *
+*	Thank you, buddy. 😊                          *
+*                                                 *
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
 package postgres
 
@@ -6,7 +21,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	authPB "github.com/ta04/auth-service/proto"
+	proto "github.com/ta04/auth-service/model/proto"
 )
 
 // Postgres is the implementor of Repository interface
@@ -14,8 +29,15 @@ type Postgres struct {
 	DB *sql.DB
 }
 
-// ShowByUsername will show auth info of an active user by it's username
-func (repo *Postgres) ShowByUsername(auth2 *authPB.Auth2) (*authPB.Auth1, error) {
+// NewPostgres will create a new postgres instance
+func NewPostgres(db *sql.DB) *Postgres {
+	return &Postgres{
+		DB: db,
+	}
+}
+
+// GetOneByUsername will get an auth data by username
+func (repo *Postgres) GetOneByUsername(auth2 *proto.Auth2) (*proto.Auth1, error) {
 	var id int32
 	var username, t string
 
@@ -25,7 +47,7 @@ func (repo *Postgres) ShowByUsername(auth2 *authPB.Auth2) (*authPB.Auth1, error)
 		return nil, err
 	}
 
-	return &authPB.Auth1{
+	return &proto.Auth1{
 		Username: username,
 		T:        t,
 	}, err

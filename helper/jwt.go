@@ -1,4 +1,4 @@
-package jwt
+package helper
 
 import (
 	"errors"
@@ -6,23 +6,12 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	userPB "github.com/ta04/user-service/proto"
+	"github.com/ta04/auth-service/model"
+	proto "github.com/ta04/user-service/model/proto"
 )
 
-// CustomClaims is the claims needed for JWT
-type CustomClaims struct {
-	jwt.StandardClaims
-	UserID           int32
-	Username         string
-	UserEmailAddress string
-	UserRole         string
-}
-
-// JWT is the implementor of TokenHandler interface
-type JWT struct{}
-
 // Encode will encode the claims into a JWT
-func (srv *JWT) Encode(user *userPB.User) (string, error) {
+func Encode(user *proto.User) (string, error) {
 	issuedAt := time.Now().Unix()
 	expiresAt := time.Now().Add(time.Hour * 1).Unix()
 
@@ -31,7 +20,7 @@ func (srv *JWT) Encode(user *userPB.User) (string, error) {
 		return "", errors.New("MICRO_WEB_NAME is not exists in .env file")
 	}
 
-	claims := CustomClaims{
+	claims := model.Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 			IssuedAt:  issuedAt,
@@ -49,5 +38,6 @@ func (srv *JWT) Encode(user *userPB.User) (string, error) {
 	if !exist {
 		return "", errors.New("SECRET_KEY is not exists in .env file")
 	}
+
 	return token.SignedString([]byte(secretKey))
 }

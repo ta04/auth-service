@@ -15,15 +15,33 @@ Dear Programmers,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-package repository
+syntax = "proto3";
 
-import (
-	authPB "github.com/ta04/auth-service/model/proto"
-)
+package com.ta04.srv.auth;
 
-// Repository is the interface of repositories.
-// As there are number of repositories can be used.
-type Repository interface {
-	GetOneByUsername(*authPB.Auth2) (*authPB.Auth1, error)
-	CreateOne(*authPB.Auth1) error
+message Auth1 {
+    string username = 1;
+    string t = 2;
+}
+
+message Auth2 {
+    string username = 1;
+    string r = 2;
+    string c = 3;
+}
+
+message Response {
+    string token = 1;
+    string c = 2;
+    Error error = 3;
+}
+
+message Error {
+    int32 code = 1;
+    string message = 2;
+}
+
+service AuthService {
+    rpc AuthRPC1(Auth1) returns (Response) {}
+    rpc AuthRPC2(Auth2) returns (Response) {}
 }
