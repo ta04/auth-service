@@ -1,8 +1,7 @@
 package helper
 
 import (
-	"errors"
-	"os"
+	"github.com/ta04/auth-service/internal/config"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -15,29 +14,23 @@ func Encode(user *proto.User) (string, error) {
 	issuedAt := time.Now().Unix()
 	expiresAt := time.Now().Add(time.Hour * 1).Unix()
 
-	issuer, exist := os.LookupEnv("MICRO_SERVICE_NAME")
-	if !exist {
-		return "", errors.New("MICRO_WEB_NAME is not exists in .env file")
-	}
+	issuer := config.MicroServiceName()
 
 	claims := model.Claims{
+		ID:           user.Id,
+		Username:     user.Username,
+		EmailAddress: user.EmailAddress,
+		Role:         user.Role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 			IssuedAt:  issuedAt,
 			Issuer:    issuer,
 		},
-		UserID:           user.Id,
-		Username:         user.Username,
-		UserEmailAddress: user.EmailAddress,
-		UserRole:         user.Role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	secretKey, exist := os.LookupEnv("SECRET_KEY")
-	if !exist {
-		return "", errors.New("SECRET_KEY is not exists in .env file")
-	}
+	secretKey := config.SecretKey()
 
 	return token.SignedString([]byte(secretKey))
 }

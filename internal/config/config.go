@@ -73,6 +73,11 @@ func PostgresDBName() string {
 	return lookupEnv("POSTGRES_DBNAME")
 }
 
+// SecretKey will return SECRET_KEY from .env file
+func SecretKey() string {
+	return lookupEnv("SECRET_KEY")
+}
+
 func lookupEnv(key string) string {
 	env, exist := os.LookupEnv(key)
 	if !exist {

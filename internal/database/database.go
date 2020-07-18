@@ -1,25 +1,32 @@
-// auth-service/database/database.go
+/*
+Dear Programmers,
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*                                                 *
+*	This file belongs to Kevin Veros Hamonangan   *
+*	and	Fandi Fladimir Dachi and is a part of     *
+*	our	last project as the student of Del        *
+*	Institute of Technology, Sitoluama.           *
+*	Please contact us via Instagram:              *
+*	sleepingnext and fandi_dachi                  *
+*	before copying this file.                     *
+*	Thank you, buddy. 😊                          *
+*                                                 *
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
 package database
 
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/ta04/auth-service/internal/config"
 )
 
-const (
-	host     = "skit-auth-service.c6pg0ooh5mrq.ap-southeast-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "sleepingnext"
-	password = "kevin99123"
-	dbname   = "auth"
-)
-
-// OpenPostgresConnection is to connect to postgres database
+// OpenPostgresConnection opens a connection to postgres database
 func OpenPostgresConnection() (*sql.DB, error) {
-	connStr := fmt.Sprintf("host=%s port =%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", connStr)
-
-	return db, err
+	return sql.Open("postgres", fmt.Sprintf("host=%s port =%d user=%s password=%s dbname=%s sslmode=disable",
+		config.PostgresHost(), config.PostgresPort(), config.PostgresUser(),
+		config.PostgresPassword(), config.PostgresDBName()))
 }
