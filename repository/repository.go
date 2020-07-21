@@ -18,12 +18,13 @@ Dear Programmers,
 package repository
 
 import (
-	authPB "github.com/ta04/auth-service/model/proto"
+	proto "github.com/ta04/auth-service/model/proto"
 )
 
 // Repository is the interface of repositories.
 // As there are number of repositories can be used.
 type Repository interface {
-	GetOneByUsername(*authPB.Auth2) (*authPB.Auth1, error)
-	CreateOne(*authPB.Auth1) error
+	GetOneByUsername(*proto.Auth2) (*proto.Auth1, error)
+	CreateOne(*proto.Auth1) error
+	DeleteByUsername(auth1 *proto.Auth1) error
 }

@@ -22,12 +22,12 @@ package com.ta04.srv.auth;
 message Auth1 {
     string username = 1;
     string t = 2;
+    string c = 3;
 }
 
 message Auth2 {
     string username = 1;
     string r = 2;
-    string c = 3;
 }
 
 message Response {

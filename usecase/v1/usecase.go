@@ -63,11 +63,6 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 		return "", badRequestError
 	}
 
-	err := usecase.Repository.CreateOne(auth1)
-	if err != nil {
-		return "", internalServerError
-	}
-
 	userClient := client.NewUserSC()
 	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username, WithCredentials: false})
 	if err != nil {
@@ -79,8 +74,16 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 	rand.Seed(time.Now().UnixNano())
 	min := 1
 	max := int(user.PrimeNumber)
+	c := fmt.Sprint(rand.Intn(max-min+1) + min)
 
-	return fmt.Sprint(rand.Intn(max-min+1) + min), nil
+	auth1.C = c
+
+	err = usecase.Repository.CreateOne(auth1)
+	if err != nil {
+		return "", internalServerError
+	}
+
+	return c, nil
 }
 
 // Auth2 will authenticate the user
@@ -120,7 +123,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	if rInt < 0 {
 		// With inverse mod
 		calculateResultURL := fmt.Sprintf("http://localhost:5000/calculateResult?g=%d&r=%d&n=%d&y=%d&c=%s",
-			userWithoutCredentials.GeneratorValue, rInt, userWithoutCredentials.PrimeNumber, userWithCredentials.Password, auth2.C)
+			userWithoutCredentials.GeneratorValue, rInt, userWithoutCredentials.PrimeNumber, userWithCredentials.Password, auth1.C)
 		calculateResultRes, err := http.Get(calculateResultURL)
 		if err != nil {
 			return "", internalServerError
@@ -148,7 +151,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 		g := float64(userWithoutCredentials.GeneratorValue)
 		n := int64(userWithoutCredentials.PrimeNumber)
 		y := float64(userWithCredentials.Password)
-		r, c, err := parseCalculateResultParams(auth2)
+		c, r, err := parseCalculateResultParams(auth1.C, auth2.R)
 		if err != nil {
 			return "", internalServerError
 		}
@@ -162,6 +165,12 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 		if err != nil {
 			return "", internalServerError
 		}
+
+		err = usecase.Repository.DeleteByUsername(auth1)
+		if err != nil {
+			return "", internalServerError
+		}
+
 		return token, nil
 	}
 
@@ -171,17 +180,17 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	}
 }
 
-func parseCalculateResultParams(auth2 *authPB.Auth2) (float64, float64, error) {
+func parseCalculateResultParams(cString string, rString string) (float64, float64, error) {
 	var err2 error
-	r, err := strconv.ParseFloat(auth2.R, 64)
+	c, err := strconv.ParseFloat(cString, 64)
 	if err != nil {
 		err2 = err
 	}
 
-	c, err := strconv.ParseFloat(auth2.C, 64)
+	r, err := strconv.ParseFloat(rString, 64)
 	if err != nil {
 		err2 = err
 	}
 
-	return r, c, err2
+	return c, r, err2
 }
