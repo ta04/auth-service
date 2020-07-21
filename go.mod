@@ -10,6 +10,6 @@ require (
 	github.com/lib/pq v1.5.2
 	github.com/micro/go-micro v1.18.0
 	github.com/micro/go-plugins/registry/consul v0.0.0-20200119172437-4fe21aa238fd
-	github.com/ta04/user-service v0.0.0-20200721034045-cef5fa22326d
+	github.com/ta04/user-service v0.0.0-20200721201256-5c15f623b8dc
 	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f
 )

@@ -57,6 +57,7 @@ var internalServerError = &authPB.Error{
 	Message: http.StatusText(http.StatusInternalServerError),
 }
 
+// Auth1 will authenticate the user
 func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 	if auth1 == nil {
 		return "", badRequestError
@@ -68,7 +69,7 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 	}
 
 	userClient := client.NewUserSC()
-	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username, WithCredentials: true})
+	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username, WithCredentials: false})
 	if err != nil {
 		return "", internalServerError
 	}
@@ -82,6 +83,7 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 	return fmt.Sprint(rand.Intn(max-min+1) + min), nil
 }
 
+// Auth2 will authenticate the user
 func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	if auth2 == nil {
 		return "", badRequestError
@@ -93,12 +95,19 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	}
 
 	userClient := client.NewUserSC()
-	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: true})
+	responseWithCredentials, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: true})
 	if err != nil {
 		return "", internalServerError
 	}
 
-	user := response.User
+	userWithCredentials := responseWithCredentials.User
+
+	responseWithoutCredentials, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: false})
+	if err != nil {
+		return "", internalServerError
+	}
+
+	userWithoutCredentials := responseWithoutCredentials.User
 
 	// Calculate the result and compare to T
 	var result string
@@ -110,9 +119,9 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	rInt := int(parsedR)
 	if rInt < 0 {
 		// With inverse mod
-		calculateResultUrl := fmt.Sprintf("http://localhost:5000/calculateResult?g=%d&r=%d&n=%d&y=%d&c=%s",
-			user.GeneratorValue, rInt, user.PrimeNumber, user.Password, auth2.C)
-		calculateResultRes, err := http.Get(calculateResultUrl)
+		calculateResultURL := fmt.Sprintf("http://localhost:5000/calculateResult?g=%d&r=%d&n=%d&y=%d&c=%s",
+			userWithoutCredentials.GeneratorValue, rInt, userWithoutCredentials.PrimeNumber, userWithCredentials.Password, auth2.C)
+		calculateResultRes, err := http.Get(calculateResultURL)
 		if err != nil {
 			return "", internalServerError
 		}
@@ -136,9 +145,9 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 		result = strconv.FormatInt(unmarshalledBody.Result, 10)
 	} else {
 		// Without inverse mod
-		g := float64(user.GeneratorValue)
-		n := int64(user.PrimeNumber)
-		y := float64(user.Password)
+		g := float64(userWithoutCredentials.GeneratorValue)
+		n := int64(userWithoutCredentials.PrimeNumber)
+		y := float64(userWithCredentials.Password)
 		r, c, err := parseCalculateResultParams(auth2)
 		if err != nil {
 			return "", internalServerError
@@ -149,14 +158,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	}
 
 	if result == auth1.T {
-		response, err = userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: false})
-		if err != nil {
-			return "", internalServerError
-		}
-
-		user = response.User
-
-		token, err := helper.Encode(user)
+		token, err := helper.Encode(userWithoutCredentials)
 		if err != nil {
 			return "", internalServerError
 		}
