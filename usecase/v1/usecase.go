@@ -68,7 +68,7 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 	}
 
 	userClient := client.NewUserSC()
-	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username})
+	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username, WithCredentials: true})
 	if err != nil {
 		return "", internalServerError
 	}
@@ -93,7 +93,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	}
 
 	userClient := client.NewUserSC()
-	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username})
+	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: true})
 	if err != nil {
 		return "", internalServerError
 	}
@@ -149,6 +149,13 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	}
 
 	if result == auth1.T {
+		response, err = userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: false})
+		if err != nil {
+			return "", internalServerError
+		}
+
+		user = response.User
+
 		token, err := helper.Encode(user)
 		if err != nil {
 			return "", internalServerError
