@@ -20,6 +20,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"log"
 
 	proto "github.com/ta04/auth-service/model/proto"
 	"github.com/ta04/auth-service/usecase"
@@ -37,9 +38,11 @@ func NewHandler(usecase usecase.Usecase) *Handler {
 	}
 }
 
+// AuthRPC1 will authenticate the user
 func (handler *Handler) AuthRPC1(ctx context.Context, req *proto.Auth1, res *proto.Response) error {
 	c, err := handler.Usecase.Auth1(req)
 	if err != nil {
+		log.Println(err)
 		res.C = ""
 		res.Error = err
 
@@ -51,9 +54,11 @@ func (handler *Handler) AuthRPC1(ctx context.Context, req *proto.Auth1, res *pro
 	return nil
 }
 
+// AuthRPC2 will authenticate the user
 func (handler *Handler) AuthRPC2(ctx context.Context, req *proto.Auth2, res *proto.Response) error {
 	token, err := handler.Usecase.Auth2(req)
 	if err != nil {
+		log.Println(err)
 		res.Token = ""
 		res.Error = err
 

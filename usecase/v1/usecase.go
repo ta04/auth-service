@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"math/rand"
 	"net/http"
@@ -60,12 +61,14 @@ var internalServerError = &authPB.Error{
 // Auth1 will authenticate the user
 func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 	if auth1 == nil {
+		log.Println("auth1 is nil")
 		return "", badRequestError
 	}
 
 	userClient := client.NewUserSC()
 	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username, WithCredentials: false})
 	if err != nil {
+		log.Println(err)
 		return "", internalServerError
 	}
 
@@ -80,6 +83,7 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 
 	err = usecase.Repository.CreateOne(auth1)
 	if err != nil {
+		log.Println(err)
 		return "", internalServerError
 	}
 
@@ -89,17 +93,20 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 // Auth2 will authenticate the user
 func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	if auth2 == nil {
+		log.Println("auth2 is nil")
 		return "", badRequestError
 	}
 
 	auth1, err := usecase.Repository.GetOneByUsername(auth2)
 	if err != nil {
+		log.Println(err)
 		return "", internalServerError
 	}
 
 	userClient := client.NewUserSC()
 	responseWithCredentials, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: true})
 	if err != nil {
+		log.Println(err)
 		return "", internalServerError
 	}
 
@@ -107,6 +114,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 
 	responseWithoutCredentials, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: false})
 	if err != nil {
+		log.Println(err)
 		return "", internalServerError
 	}
 
@@ -116,6 +124,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	var result string
 	parsedR, err := strconv.ParseInt(auth2.R, 10, 64)
 	if err != nil {
+		log.Println(err)
 		return "", internalServerError
 	}
 
@@ -126,6 +135,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 			userWithoutCredentials.GeneratorValue, rInt, userWithoutCredentials.PrimeNumber, userWithCredentials.Password, auth1.C)
 		calculateResultRes, err := http.Get(calculateResultURL)
 		if err != nil {
+			log.Println(err)
 			return "", internalServerError
 		}
 
@@ -133,6 +143,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 
 		body, err := ioutil.ReadAll(calculateResultRes.Body)
 		if err != nil {
+			log.Println(err)
 			return "", internalServerError
 		}
 
@@ -142,6 +153,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 		var unmarshalledBody ResultStruct
 		err = json.Unmarshal(body, &unmarshalledBody)
 		if err != nil {
+			log.Println(err)
 			return "", internalServerError
 		}
 
@@ -153,6 +165,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 		y := float64(userWithCredentials.Password)
 		c, r, err := parseCalculateResultParams(auth1.C, auth2.R)
 		if err != nil {
+			log.Println(err)
 			return "", internalServerError
 		}
 
@@ -163,11 +176,13 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	if result == auth1.T {
 		token, err := helper.Encode(userWithoutCredentials)
 		if err != nil {
+			log.Println(err)
 			return "", internalServerError
 		}
 
 		err = usecase.Repository.DeleteByUsername(auth1)
 		if err != nil {
+			log.Println(err)
 			return "", internalServerError
 		}
 

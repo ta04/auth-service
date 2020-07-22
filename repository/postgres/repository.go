@@ -34,8 +34,7 @@ func (repo *Postgres) CreateOne(auth1 *proto.Auth1) error {
 
 // DeleteByUsername will delete auth data by username
 func (repo *Postgres) DeleteByUsername(auth1 *proto.Auth1) error {
-	query := fmt.Sprintf("DELETE FROM auth WHERE username='%s'",
-		auth1.Username)
+	query := fmt.Sprintf("DELETE FROM auth WHERE username='%s'", auth1.Username)
 	_, err := repo.DB.Exec(query)
 
 	return err

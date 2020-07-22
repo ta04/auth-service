@@ -39,10 +39,10 @@ func NewPostgres(db *sql.DB) *Postgres {
 // GetOneByUsername will get an auth data by username
 func (repo *Postgres) GetOneByUsername(auth2 *proto.Auth2) (*proto.Auth1, error) {
 	var id int32
-	var username, t string
+	var username, t, c string
 
 	query := fmt.Sprintf("SELECT * FROM auth WHERE username = '%s' ORDER BY id DESC LIMIT 1", auth2.Username)
-	err := repo.DB.QueryRow(query).Scan(&id, &username, &t)
+	err := repo.DB.QueryRow(query).Scan(&id, &username, &t, &c)
 	if err != nil {
 		return nil, err
 	}
@@ -50,5 +50,6 @@ func (repo *Postgres) GetOneByUsername(auth2 *proto.Auth2) (*proto.Auth1, error)
 	return &proto.Auth1{
 		Username: username,
 		T:        t,
+		C:        c,
 	}, err
 }
