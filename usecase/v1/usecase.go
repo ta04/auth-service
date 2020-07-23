@@ -18,7 +18,7 @@ Dear Programmers,
 package v1
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,16 +29,19 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ta04/auth-service/client"
 	"github.com/ta04/auth-service/helper"
 	authPB "github.com/ta04/auth-service/model/proto"
 	"github.com/ta04/auth-service/repository"
 	userPB "github.com/ta04/user-service/model/proto"
 )
 
-// usecase is the struct of order usecase
+// Usecase is the struct of order usecase
 type Usecase struct {
 	Repository repository.Repository
+}
+
+type getUserStruct struct {
+	User userPB.User `json:"user"`
 }
 
 // NewUsecase will create a new order usecase
@@ -65,25 +68,47 @@ func (usecase *Usecase) Auth1(auth1 *authPB.Auth1) (string, *authPB.Error) {
 		return "", badRequestError
 	}
 
-	userClient := client.NewUserSC()
-	response, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth1.Username, WithCredentials: false})
+	getUserWithoutCredentialsRequestBody := map[string]interface{}{
+		"username":         auth1.Username,
+		"With_credentials": false,
+	}
+
+	marshaledGetUserWithoutCredentialsRequestBody, err := json.Marshal(getUserWithoutCredentialsRequestBody)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	getUserWithoutCredentialsResponse, err := http.Post("http://localhost:50057/user/show", "application/json", bytes.NewBuffer(marshaledGetUserWithoutCredentialsRequestBody))
+	if err != nil {
+		log.Println(1, err)
+		return "", internalServerError
+	}
+
+	defer getUserWithoutCredentialsResponse.Body.Close()
+
+	body, err := ioutil.ReadAll(getUserWithoutCredentialsResponse.Body)
 	if err != nil {
 		log.Println(err)
 		return "", internalServerError
 	}
 
-	user := response.User
+	var getUser getUserStruct
+	err = json.Unmarshal(body, &getUser)
+	if err != nil {
+		log.Println(err)
+		return "", internalServerError
+	}
 
 	rand.Seed(time.Now().UnixNano())
 	min := 1
-	max := int(user.PrimeNumber)
+	max := int(getUser.User.PrimeNumber)
 	c := fmt.Sprint(rand.Intn(max-min+1) + min)
 
 	auth1.C = c
 
 	err = usecase.Repository.CreateOne(auth1)
 	if err != nil {
-		log.Println(err)
+		log.Println(4, err)
 		return "", internalServerError
 	}
 
@@ -103,22 +128,71 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 		return "", internalServerError
 	}
 
-	userClient := client.NewUserSC()
-	responseWithCredentials, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: true})
+	getUserWithCredentialsRequestBody := map[string]interface{}{
+		"username":         auth2.Username,
+		"With_credentials": true,
+	}
+
+	marshaledGetUserWithCredentialsRequestBody, err := json.Marshal(getUserWithCredentialsRequestBody)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	getUserWithCredentialsResponse, err := http.Post("http://localhost:50057/user/show", "application/json", bytes.NewBuffer(marshaledGetUserWithCredentialsRequestBody))
+	if err != nil {
+		log.Println(1, err)
+		return "", internalServerError
+	}
+
+	defer getUserWithCredentialsResponse.Body.Close()
+
+	body, err := ioutil.ReadAll(getUserWithCredentialsResponse.Body)
 	if err != nil {
 		log.Println(err)
 		return "", internalServerError
 	}
 
-	userWithCredentials := responseWithCredentials.User
-
-	responseWithoutCredentials, err := userClient.GetOneUser(context.Background(), &userPB.GetOneUserRequest{Username: auth2.Username, WithCredentials: false})
+	var getUserWithCredential getUserStruct
+	err = json.Unmarshal(body, &getUserWithCredential)
 	if err != nil {
 		log.Println(err)
 		return "", internalServerError
 	}
 
-	userWithoutCredentials := responseWithoutCredentials.User
+	userWithCredentials := getUserWithCredential.User
+
+	getUserWithoutCredentialsRequestBody := map[string]interface{}{
+		"username":         auth1.Username,
+		"With_credentials": false,
+	}
+
+	marshaledGetUserWithoutCredentialsRequestBody, err := json.Marshal(getUserWithoutCredentialsRequestBody)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	getUserWithoutCredentialsResponse, err := http.Post("http://localhost:50057/user/show", "application/json", bytes.NewBuffer(marshaledGetUserWithoutCredentialsRequestBody))
+	if err != nil {
+		log.Println(1, err)
+		return "", internalServerError
+	}
+
+	defer getUserWithoutCredentialsResponse.Body.Close()
+
+	body, err = ioutil.ReadAll(getUserWithoutCredentialsResponse.Body)
+	if err != nil {
+		log.Println(err)
+		return "", internalServerError
+	}
+
+	var getUserWithoutCredential getUserStruct
+	err = json.Unmarshal(body, &getUserWithoutCredential)
+	if err != nil {
+		log.Println(err)
+		return "", internalServerError
+	}
+
+	userWithoutCredentials := getUserWithoutCredential.User
 
 	// Calculate the result and compare to T
 	var result string
@@ -174,7 +248,7 @@ func (usecase *Usecase) Auth2(auth2 *authPB.Auth2) (string, *authPB.Error) {
 	}
 
 	if result == auth1.T {
-		token, err := helper.Encode(userWithoutCredentials)
+		token, err := helper.Encode(&userWithoutCredentials)
 		if err != nil {
 			log.Println(err)
 			return "", internalServerError
